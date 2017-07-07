@@ -22,13 +22,6 @@ $(function() {
         .getRepoList();
     }
     
-    // if selecting trigger step get clock setting
-    if (id == 'clock-o') {
-      $('#clock').parent().addClass('loading');
-      $("#clock_hour").parent().hide();
-      google.script.run.withSuccessHandler(showClock)
-        .getClock();
-    }
   });
   
   $('#repo_refresh').on('click', function(e) {
@@ -39,12 +32,6 @@ $(function() {
   });
   
   // add handlers for buttons
-  // Twitter disconnect
-  $('.info').on('click', 'button#twitter_signout', function() {
-    $(this).find('i').removeClass('fa-twitter').addClass('fa-spinner');
-    google.script.run.withSuccessHandler(showCompletedSteps)
-      .disconnectTwitter();
-  });
   // Github disconnect
   $('.info').on('click', 'button#github_signout', function() {
     $(this).find('i').removeClass('fa-github').addClass('fa-spinner');
@@ -73,41 +60,7 @@ $(function() {
       .processRepoForm(document.getElementById('repo_form'));
   });
   
-  // Trigger step
-  $('.info').on('click', 'button#clock-cancel', function(event) {
-    $('#step-clock-o button').addClass('disabled');
-    event.preventDefault();
-    $('#clock').parent().addClass('loading');
-    google.script.run.withSuccessHandler(showClock)
-      .getClock();
-  });
-  $('.info').on('click', 'button#clock-save', function(event) {
-    event.preventDefault();
-    $('#step-clock-o button').addClass('disabled');
-    google.script.run.withSuccessHandler(function(data) {
-        var message = JSON.parse(data);
-        if ($('#clock').val() == "Daily" || $('#clock').val() == "Hourly") {
-          $('#clock-o').parent().addClass('completed');
-        }
-        $('#step-clock-o button').removeClass('disabled');
-        $('.nag .title').text(message.text);
-        $('.message.nag').nag('show');
-      })
-      .processClockForm(document.getElementById('clock_form'));
-  });
-  $('.info').on('click', 'button#clock-run', function(event) {
-    event.preventDefault();
-    $('#step-clock-o button').addClass('disabled');
-    google.script.run.withSuccessHandler(function(data) {
-        var message = JSON.parse(data);
-        $('#step-clock-o button').removeClass('disabled');
-        $('.nag .title').text(message.text);
-        $('.message.nag').nag('show');
-        $('#last_run').text(message.last_run);
-      })
-      .updateArchive();
-  });
-  
+
   $('.info').on('change', '#repo, #sub_dir', function(event) {
     var repo_name = $('#repo').val();
     var repo_owner = $('#repo_owner').val();
@@ -143,11 +96,7 @@ function showCompletedSteps(steps) {
     }
   }
   $('#folder-open').parent().addClass('disabled');
-  $('#clock-o').parent().addClass('disabled')
 
-  if (steps.links['twitter'] !== undefined) {
-    $('#twitter_auth').html(steps.links['twitter']);
-  }
   if (steps.icons['github'] == 'completed') {
     $('#folder-open').parent().removeClass('disabled');
   }
@@ -182,30 +131,7 @@ function showRepoList(data) {
   $('#step-folder-open button').removeClass('disabled');
 }
 
-function showClock(clock) {
-  clockHandler(clock, 'clock');
-  clockHandler(clock, 'clock_hour');
-  $('#last_run').text(clock.last_run);
-  $('#step-clock-o button').removeClass('disabled');
-}
 
-function clockHandler(clock, clockName) {
-  var list = $('#' + clockName)
-    .find('option')
-    .remove()
-    .end();
-  for (i in clock.options[clockName]) {
-    list.append(new Option(clock.options[clockName][i], clock.options[clockName][i]));
-  }
-  list.dropdown('refresh')
-  if (clock.clock[clockName]) {
-    // https://github.com/Semantic-Org/Semantic-UI/issues/2247#issuecomment-165741871
-    setTimeout(function() {
-      list.dropdown('set selected', clock.clock[clockName]);
-    }, 1);
-  }
-  list.parent().removeClass('loading');
-}
 </script>
 <style>
 .container {
